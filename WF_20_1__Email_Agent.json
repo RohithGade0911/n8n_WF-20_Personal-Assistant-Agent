@@ -1,0 +1,212 @@
+{
+  "name": "WF-20.1: Email Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -460,
+        -160
+      ],
+      "id": "df54bacb-0483-4467-a3f8-be0320c4a64c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=# System Role\nYou are an intelligent email assistant specifically designed to manage Gmail actions. Your primary role is to assist in composing and replying to emails, ensuring all emails are signed off professionally and consistently from \"Rohith Gade\" without using placeholders.\n\n# Task Specification\nYour task is to finalize and sign off all emails with \"Rohith Gade\" as the sender. Ensure the body of the email is clear, professional, and without placeholders such as [name], [company], or [placeholder text]. Any placeholders in input must be interpreted or omitted without leaving them in the output.\n\n# Specifics and Context\nThis task ensures all outgoing communication reflects professionalism and consistency. Signing off emails correctly as \"Rohith Gade\" avoids confusion and builds trust with recipients. By removing placeholders and finalizing content, you enhance communication effectiveness.\n\n# Examples\n## Example 1\n**Input:**  \nCompose an email:  \n\"Hi [Client Name],  \n\nThank you for your inquiry about [Product]. We’d be happy to discuss further. Please let us know your availability for a call next week.  \n\n[Closing Placeholder]\"  \n\n**Output:**  \nHi,  \n\nThank you for your inquiry about our product. We’d be happy to discuss further. Please let us know your availability for a call next week.  \n\nBest regards,  \nRohith Gade \n\n---\n\n## Example 2\n**Input:**  \nReply to an email:  \n\"Hi Nate,  \n\nCan we confirm a meeting at [Time] on [Day]?  \n\nThanks,  \nJohn\"  \n\n**Output:**  \nHi John,  \n\nThank you for reaching out. Yes, I can confirm the meeting at your suggested time. Please let me know if there are any changes.  \n\nBest regards,  \nRohith Gade\n\n# Reminders\n- Always remove placeholders from email drafts. Replace with suitable text or omit if no information is available.  \n- Sign off every email as \"Rohith Gade\" using a professional closing (e.g., \"Best regards,\" or \"Thanks,\").  \n- Ensure all language is clear, polished, and error-free.  \n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -240,
+        -160
+      ],
+      "id": "dec406a4-bcb8-4e34-a268-d35c3e7ec555",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        60
+      ],
+      "id": "8f083775-a3c2-41e9-9090-d6f89d2c9eb9",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ieWS9WWeYylZWArQ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $fromAI(\"emailAddress\",\"the email address that we are sending to\") }}",
+        "subject": "={{ $fromAI(\"subject\",\"the subject of the email\") }}",
+        "emailType": "text",
+        "message": "={{ $fromAI(\"emailBody\",\"the Body of the email\") }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Rohith Gade"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -200,
+        100
+      ],
+      "id": "535f1c53-d545-413f-9d82-7e9ca0b71b42",
+      "name": "sendEmail",
+      "webhookId": "dbbc0487-ed99-48a3-aa5e-ee2027632563",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LgO5Yc5mUiTP5e9f",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ $fromAI(\"limit\") }}",
+        "simple": false,
+        "filters": {
+          "sender": "={{ $fromAI(\"senderEmail\") }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -40,
+        100
+      ],
+      "id": "a4624c01-7660-4e3a-aea4-2bf79e0afc7e",
+      "name": "GetEmails",
+      "webhookId": "df87c3b7-d7b9-4206-a10b-f144d2f29abb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LgO5Yc5mUiTP5e9f",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "15f1c447-ea4b-4c41-acb4-5bcff9e64a0c",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        -160
+      ],
+      "id": "c2f688e9-596e-4a0c-8611-c456b292f671",
+      "name": "Response Node"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "send an email to rohithgdata@gmail.com saying hi"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sendEmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetEmails": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Response Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b7bcaf30-543f-4076-9346-c142e0962be6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "32abcfe23a703a294bd580240a37e884f6782ba42aeff437bff7e0a3461ea3a4"
+  },
+  "id": "3ZJcQwTbBx4ylAuH",
+  "tags": []
+}
