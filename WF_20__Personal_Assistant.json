@@ -1,5 +1,4 @@
 {
-  "name": "WF-20: Personal Assistant",
   "nodes": [
     {
       "parameters": {
@@ -328,43 +327,6 @@
     },
     {
       "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainSummarization",
-      "typeVersion": 2,
-      "position": [
-        520,
-        -320
-      ],
-      "id": "012efe9f-4209-4787-ba2f-02e9fa4c6c66",
-      "name": "Summarization Chain"
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-4o-mini"
-        },
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.2,
-      "position": [
-        640,
-        -120
-      ],
-      "id": "7fdbc33b-41c1-463a-8db0-16320601405d",
-      "name": "OpenAI Chat Model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "ieWS9WWeYylZWArQ",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "https://api.elevenlabs.io/v1/text-to-speech/cgSgspJ2msm6clMCkdW9",
         "sendHeaders": true,
@@ -382,7 +344,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"text\": \"{{ JSON.stringify($json.response.text).replace(/(^\\\"|\\\"$)/g, '') }}\"\n}",
+        "jsonBody": "={\n  \"text\": \"{{ JSON.stringify($json.message.content).replace(/(^\\\"|\\\"$)/g, '') }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -433,15 +395,58 @@
       "typeVersion": 1,
       "id": "dd9c6fdf-6525-4e6c-b32e-d8b52c804ca7",
       "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Summarize this incoming information: {{ $json.output }}\n\noutput only plain text, there should be now markdown formating or any symbols ",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        440,
+        -360
+      ],
+      "id": "0b90a321-039b-44c5-b1d0-59906b5c97ce",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "ieWS9WWeYylZWArQ",
+          "name": "OpenAi account"
+        }
+      }
     }
   ],
-  "pinData": {},
   "connections": {
     "Telegram Trigger": {
       "main": [
         [
           {
             "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
             "type": "main",
             "index": 0
           }
@@ -476,17 +481,6 @@
           {
             "node": "AI Agent",
             "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [
-          {
-            "node": "Summarization Chain",
-            "type": "main",
             "index": 0
           }
         ]
@@ -576,28 +570,6 @@
         ]
       ]
     },
-    "OpenAI Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Summarization Chain",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Summarization Chain": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "HTTP Request": {
       "main": [
         [
@@ -608,17 +580,22 @@
           }
         ]
       ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "versionId": "5ceb0bd2-c717-4a58-b956-6c237d7e5ca3",
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "32abcfe23a703a294bd580240a37e884f6782ba42aeff437bff7e0a3461ea3a4"
-  },
-  "id": "lVLq6TSUdrt1CoCr",
-  "tags": []
+  }
 }
